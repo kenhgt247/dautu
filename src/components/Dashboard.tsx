@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { usePortfolio, AssetType } from '../context/PortfolioContext';
+import { usePortfolio, AssetType, Transaction } from '../context/PortfolioContext';
 import { useAuth } from '../context/AuthContext';
-import { TrendingUp, TrendingDown, Coins, Wallet, History, ArrowRightLeft, Eye, EyeOff, LogOut, ShieldCheck } from 'lucide-react';
+import { TrendingUp, TrendingDown, Coins, Wallet, History, ArrowRightLeft, Eye, EyeOff, LogOut, ShieldCheck, FileText } from 'lucide-react';
+import InvoiceModal from './InvoiceModal';
 
 interface PriceData {
   buy: number;
@@ -33,6 +34,7 @@ export default function Dashboard() {
   
   const [showAssets, setShowAssets] = useState(true);
   const [showHistory, setShowHistory] = useState(true);
+  const [selectedInvoice, setSelectedInvoice] = useState<Transaction | null>(null);
   const [tradeDate, setTradeDate] = useState(() => {
     const now = new Date();
     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -518,6 +520,7 @@ export default function Dashboard() {
                       <th className="p-4 font-normal text-right">Số lượng</th>
                       <th className="p-4 font-normal text-right">Đơn giá</th>
                       <th className="p-4 font-normal text-right">Tổng tiền</th>
+                      <th className="p-4 font-normal text-center">Hóa đơn</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
@@ -551,6 +554,15 @@ export default function Dashboard() {
                         }`}>
                           {tx.type === 'BUY' ? '-' : '+'}{formatCurrency(tx.total)}
                         </td>
+                        <td className="p-4 text-center">
+                          <button
+                            onClick={() => setSelectedInvoice(tx)}
+                            className="p-2 text-white/40 hover:text-gold-400 hover:bg-gold-400/10 rounded-lg transition-colors inline-flex items-center justify-center"
+                            title="Xem hóa đơn"
+                          >
+                            <FileText size={16} />
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -560,6 +572,12 @@ export default function Dashboard() {
           </div>
         )}
       </section>
+
+      {/* Invoice Modal */}
+      <InvoiceModal 
+        transaction={selectedInvoice} 
+        onClose={() => setSelectedInvoice(null)} 
+      />
 
     </div>
   );
