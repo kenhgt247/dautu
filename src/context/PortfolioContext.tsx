@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useAuth } from './AuthContext';
 
 export type TransactionType = 'BUY' | 'SELL';
 export type AssetType = 'GOLD' | 'SILVER' | 'SILVER_KG';
@@ -43,23 +44,35 @@ const defaultPortfolio: Portfolio = {
 };
 
 export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user } = useAuth();
+  const userId = user?.cccd || 'guest';
+
   const [portfolio, setPortfolio] = useState<Portfolio>(() => {
-    const saved = localStorage.getItem('portfolio');
+    const saved = localStorage.getItem(`portfolio_${userId}`);
     return saved ? { ...defaultPortfolio, ...JSON.parse(saved) } : defaultPortfolio;
   });
 
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
-    const saved = localStorage.getItem('transactions');
+    const saved = localStorage.getItem(`transactions_${userId}`);
     return saved ? JSON.parse(saved) : [];
   });
 
+  // Reload data when user changes
   useEffect(() => {
-    localStorage.setItem('portfolio', JSON.stringify(portfolio));
-  }, [portfolio]);
+    const savedPortfolio = localStorage.getItem(`portfolio_${userId}`);
+    setPortfolio(savedPortfolio ? { ...defaultPortfolio, ...JSON.parse(savedPortfolio) } : defaultPortfolio);
+
+    const savedTransactions = localStorage.getItem(`transactions_${userId}`);
+    setTransactions(savedTransactions ? JSON.parse(savedTransactions) : []);
+  }, [userId]);
 
   useEffect(() => {
-    localStorage.setItem('transactions', JSON.stringify(transactions));
-  }, [transactions]);
+    localStorage.setItem(`portfolio_${userId}`, JSON.stringify(portfolio));
+  }, [portfolio, userId]);
+
+  useEffect(() => {
+    localStorage.setItem(`transactions_${userId}`, JSON.stringify(transactions));
+  }, [transactions, userId]);
 
   const buyAsset = (asset: AssetType, amount: number, pricePerUnit: number, date?: string) => {
     const totalCost = amount * pricePerUnit;
