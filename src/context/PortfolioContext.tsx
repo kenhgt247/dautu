@@ -1,0 +1,143 @@
+import React, { createContext, useContext, useState, useEffect } from 'react';
+
+export type TransactionType = 'BUY' | 'SELL';
+export type AssetType = 'GOLD' | 'SILVER' | 'SILVER_KG';
+
+export interface Transaction {
+  id: string;
+  date: string;
+  type: TransactionType;
+  asset: AssetType;
+  amount: number;
+  pricePerUnit: number;
+  total: number;
+}
+
+export interface Portfolio {
+  gold: number;
+  goldAvgCost: number;
+  silver: number;
+  silverAvgCost: number;
+  silverKg: number;
+  silverKgAvgCost: number;
+}
+
+interface PortfolioContextType {
+  portfolio: Portfolio;
+  transactions: Transaction[];
+  buyAsset: (asset: AssetType, amount: number, pricePerUnit: number, date?: string) => void;
+  sellAsset: (asset: AssetType, amount: number, pricePerUnit: number, date?: string) => void;
+}
+
+const PortfolioContext = createContext<PortfolioContextType | undefined>(undefined);
+
+const getAssetKey = (asset: AssetType): keyof Portfolio => {
+  if (asset === 'SILVER_KG') return 'silverKg';
+  return asset.toLowerCase() as keyof Portfolio;
+};
+
+const defaultPortfolio: Portfolio = {
+  gold: 0, goldAvgCost: 0,
+  silver: 0, silverAvgCost: 0,
+  silverKg: 0, silverKgAvgCost: 0
+};
+
+export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [portfolio, setPortfolio] = useState<Portfolio>(() => {
+    const saved = localStorage.getItem('portfolio');
+    return saved ? { ...defaultPortfolio, ...JSON.parse(saved) } : defaultPortfolio;
+  });
+
+  const [transactions, setTransactions] = useState<Transaction[]>(() => {
+    const saved = localStorage.getItem('transactions');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('portfolio', JSON.stringify(portfolio));
+  }, [portfolio]);
+
+  useEffect(() => {
+    localStorage.setItem('transactions', JSON.stringify(transactions));
+  }, [transactions]);
+
+  const buyAsset = (asset: AssetType, amount: number, pricePerUnit: number, date?: string) => {
+    const totalCost = amount * pricePerUnit;
+
+    const newTransaction: Transaction = {
+      id: Math.random().toString(36).substring(2, 9),
+      date: date || new Date().toISOString(),
+      type: 'BUY',
+      asset,
+      amount,
+      pricePerUnit,
+      total: totalCost
+    };
+
+    setPortfolio(prev => {
+      const assetKey = getAssetKey(asset);
+      const avgCostKey = `${assetKey}AvgCost` as keyof Portfolio;
+      const currentAmount = prev[assetKey] as number;
+      const currentAvgCost = prev[avgCostKey] as number;
+      
+      const newAmount = currentAmount + amount;
+      const newAvgCost = newAmount > 0 ? ((currentAmount * currentAvgCost) + totalCost) / newAmount : 0;
+
+      return {
+        ...prev,
+        [assetKey]: newAmount,
+        [avgCostKey]: newAvgCost
+      };
+    });
+    setTransactions(prev => [newTransaction, ...prev]);
+  };
+
+  const sellAsset = (asset: AssetType, amount: number, pricePerUnit: number, date?: string) => {
+    const currentAssetAmount = portfolio[getAssetKey(asset)];
+    if (currentAssetAmount < amount) {
+      const assetName = asset === 'GOLD' ? 'Vàng' : asset === 'SILVER_KG' ? 'Bạc (Kg)' : 'Bạc';
+      alert(`Bạn không có đủ ${assetName} để bán.`);
+      return;
+    }
+
+    const totalRevenue = amount * pricePerUnit;
+
+    const newTransaction: Transaction = {
+      id: Math.random().toString(36).substring(2, 9),
+      date: date || new Date().toISOString(),
+      type: 'SELL',
+      asset,
+      amount,
+      pricePerUnit,
+      total: totalRevenue
+    };
+
+    setPortfolio(prev => {
+      const assetKey = getAssetKey(asset);
+      const avgCostKey = `${assetKey}AvgCost` as keyof Portfolio;
+      const newAmount = (prev[assetKey] as number) - amount;
+      const newAvgCost = newAmount > 0 ? prev[avgCostKey] as number : 0;
+
+      return {
+        ...prev,
+        [assetKey]: newAmount,
+        [avgCostKey]: newAvgCost
+      };
+    });
+    setTransactions(prev => [newTransaction, ...prev]);
+  };
+
+  return (
+    <PortfolioContext.Provider value={{ portfolio, transactions, buyAsset, sellAsset }}>
+      {children}
+    </PortfolioContext.Provider>
+  );
+};
+
+export const usePortfolio = () => {
+  const context = useContext(PortfolioContext);
+  if (context === undefined) {
+    throw new Error('usePortfolio must be used within a PortfolioProvider');
+  }
+  return context;
+};
