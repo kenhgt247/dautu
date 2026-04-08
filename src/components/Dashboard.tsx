@@ -54,9 +54,11 @@ export default function Dashboard() {
   useEffect(() => {
     if (prices) {
       const priceKey = tradeAsset === 'SILVER_KG' ? 'silverKg' : tradeAsset.toLowerCase() as keyof Prices;
+      // If user BUYS, they pay the shop's SELL price.
+      // If user SELLS, they receive the shop's BUY price.
       const currentPrice = tradeType === 'BUY' 
-        ? (prices[priceKey] as PriceData).buy 
-        : (prices[priceKey] as PriceData).sell;
+        ? (prices[priceKey] as PriceData).sell 
+        : (prices[priceKey] as PriceData).buy;
       setCustomPrice(currentPrice.toString());
     }
   }, [tradeAsset, tradeType, prices]);
@@ -118,10 +120,11 @@ export default function Dashboard() {
     );
   }
 
+  // To evaluate portfolio value, we use the shop's BUY price (liquidation value)
   const currentAssetValue = 
-    (portfolio.gold * prices.gold.sell) + 
-    (portfolio.silver * prices.silver.sell) + 
-    (portfolio.silverKg * prices.silverKg.sell);
+    (portfolio.gold * prices.gold.buy) + 
+    (portfolio.silver * prices.silver.buy) + 
+    (portfolio.silverKg * prices.silverKg.buy);
 
   const totalAssetsValue = currentAssetValue;
 
@@ -316,9 +319,9 @@ export default function Dashboard() {
             </h2>
             <div className="bg-paper border border-white/5 rounded-2xl p-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 divide-y md:divide-y-0 md:divide-x divide-white/10">
-                {renderAsset('Vàng (Chỉ)', portfolio.gold, portfolio.goldAvgCost, prices.gold.sell, 'text-gold-400')}
-                {renderAsset('Bạc (Chỉ)', portfolio.silver, portfolio.silverAvgCost, prices.silver.sell, 'text-silver-400')}
-                {renderAsset('Bạc (Kg)', portfolio.silverKg, portfolio.silverKgAvgCost, prices.silverKg.sell, 'text-silver-300')}
+                {renderAsset('Vàng (Chỉ)', portfolio.gold, portfolio.goldAvgCost, prices.gold.buy, 'text-gold-400')}
+                {renderAsset('Bạc (Chỉ)', portfolio.silver, portfolio.silverAvgCost, prices.silver.buy, 'text-silver-400')}
+                {renderAsset('Bạc (Kg)', portfolio.silverKg, portfolio.silverKgAvgCost, prices.silverKg.buy, 'text-silver-300')}
               </div>
             </div>
           </section>
