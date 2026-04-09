@@ -50,26 +50,26 @@ export default function InvoiceModal({ transaction, onClose }: InvoiceModalProps
         </div>
 
         {/* Invoice Content */}
-        <div className="p-8 print:p-0" id="invoice-content">
+        <div className="p-4 sm:p-8 overflow-y-auto max-h-[80vh] print:max-h-none print:overflow-visible print:p-0" id="invoice-content">
           {/* Header */}
-          <div className="flex justify-between items-start border-b-2 border-gray-800 pb-6 mb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start border-b-2 border-gray-800 pb-4 sm:pb-6 mb-4 sm:mb-6 gap-4 sm:gap-0">
             <div>
-              <h1 className="font-serif text-4xl font-bold text-gray-900 tracking-tight mb-1">ĐẦU TƯ</h1>
-              <p className="text-sm text-gray-500 uppercase tracking-widest">Nền tảng giao dịch trực tuyến</p>
+              <h1 className="font-serif text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight mb-1">ĐẦU TƯ</h1>
+              <p className="text-xs sm:text-sm text-gray-500 uppercase tracking-widest">Nền tảng giao dịch trực tuyến</p>
             </div>
-            <div className="text-right">
-              <h2 className="text-2xl font-bold text-gray-800 uppercase tracking-wider mb-1">Hóa Đơn</h2>
-              <p className="text-sm text-gray-600 font-mono">Mã GD: #{transaction.id.toUpperCase()}</p>
-              <p className="text-sm text-gray-600">Ngày: {new Date(transaction.date).toLocaleDateString('vi-VN')}</p>
-              <p className="text-sm text-gray-600">Giờ: {new Date(transaction.date).toLocaleTimeString('vi-VN')}</p>
+            <div className="text-left sm:text-right">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-800 uppercase tracking-wider mb-1">Hóa Đơn</h2>
+              <p className="text-xs sm:text-sm text-gray-600 font-mono">Mã GD: #{transaction.id.toUpperCase()}</p>
+              <p className="text-xs sm:text-sm text-gray-600">Ngày: {new Date(transaction.date).toLocaleDateString('vi-VN')}</p>
+              <p className="text-xs sm:text-sm text-gray-600">Giờ: {new Date(transaction.date).toLocaleTimeString('vi-VN')}</p>
             </div>
           </div>
 
           {/* Customer Info */}
-          <div className="mb-8">
+          <div className="mb-6 sm:mb-8">
             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Thông tin khách hàng</h3>
             <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 print:border-none print:bg-transparent print:p-0">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-500 mb-1">Họ và tên</p>
                   <p className="font-medium text-gray-900 uppercase">{user.fullName}</p>
@@ -87,46 +87,48 @@ export default function InvoiceModal({ transaction, onClose }: InvoiceModalProps
           </div>
 
           {/* Transaction Details */}
-          <div className="mb-8">
+          <div className="mb-6 sm:mb-8">
             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Chi tiết giao dịch</h3>
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b-2 border-gray-800 text-sm">
-                  <th className="py-3 font-bold text-gray-800">Sản phẩm</th>
-                  <th className="py-3 font-bold text-gray-800">Loại GD</th>
-                  <th className="py-3 font-bold text-gray-800 text-right">Số lượng</th>
-                  <th className="py-3 font-bold text-gray-800 text-right">Đơn giá</th>
-                  <th className="py-3 font-bold text-gray-800 text-right">Thành tiền</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-b border-gray-200">
-                  <td className="py-4 font-medium text-gray-900">{assetName}</td>
-                  <td className="py-4">
-                    <span className={`font-bold ${transaction.type === 'BUY' ? 'text-red-600' : 'text-green-600'}`}>
-                      {txType}
-                    </span>
-                  </td>
-                  <td className="py-4 text-right font-mono">{transaction.amount.toLocaleString('vi-VN')} {unit}</td>
-                  <td className="py-4 text-right font-mono">{formatCurrency(transaction.pricePerUnit)}</td>
-                  <td className="py-4 text-right font-mono font-bold text-gray-900">{formatCurrency(transaction.total)}</td>
-                </tr>
-              </tbody>
-            </table>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[500px]">
+                <thead>
+                  <tr className="border-b-2 border-gray-800 text-xs sm:text-sm">
+                    <th className="py-2 sm:py-3 font-bold text-gray-800">Sản phẩm</th>
+                    <th className="py-2 sm:py-3 font-bold text-gray-800">Loại GD</th>
+                    <th className="py-2 sm:py-3 font-bold text-gray-800 text-right">Số lượng</th>
+                    <th className="py-2 sm:py-3 font-bold text-gray-800 text-right">Đơn giá</th>
+                    <th className="py-2 sm:py-3 font-bold text-gray-800 text-right">Thành tiền</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-gray-200 text-sm">
+                    <td className="py-3 sm:py-4 font-medium text-gray-900">{assetName}</td>
+                    <td className="py-3 sm:py-4">
+                      <span className={`font-bold ${transaction.type === 'BUY' ? 'text-red-600' : 'text-green-600'}`}>
+                        {txType}
+                      </span>
+                    </td>
+                    <td className="py-3 sm:py-4 text-right font-mono">{transaction.amount.toLocaleString('vi-VN')} {unit}</td>
+                    <td className="py-3 sm:py-4 text-right font-mono">{formatCurrency(transaction.pricePerUnit)}</td>
+                    <td className="py-3 sm:py-4 text-right font-mono font-bold text-gray-900">{formatCurrency(transaction.total)}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
 
           {/* Total */}
-          <div className="flex justify-end mb-12">
-            <div className="w-1/2 bg-gray-50 p-4 rounded-lg print:bg-transparent print:p-0">
+          <div className="flex justify-end mb-8 sm:mb-12">
+            <div className="w-full sm:w-1/2 bg-gray-50 p-4 rounded-lg print:bg-transparent print:p-0">
               <div className="flex justify-between items-center">
-                <span className="font-bold text-gray-800 uppercase">Tổng cộng:</span>
-                <span className="font-mono text-2xl font-bold text-gold-600">{formatCurrency(transaction.total)}</span>
+                <span className="font-bold text-gray-800 uppercase text-sm sm:text-base">Tổng cộng:</span>
+                <span className="font-mono text-xl sm:text-2xl font-bold text-gold-600">{formatCurrency(transaction.total)}</span>
               </div>
             </div>
           </div>
 
           {/* Signatures */}
-          <div className="grid grid-cols-2 gap-8 text-center pt-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 text-center pt-4 sm:pt-8">
             <div className="flex flex-col items-center">
               <p className="font-bold text-gray-800 mb-1">Khách hàng</p>
               <p className="text-sm text-gray-500 italic mb-4">(Ký và ghi rõ họ tên)</p>
