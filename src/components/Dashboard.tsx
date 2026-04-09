@@ -220,6 +220,17 @@ export default function Dashboard() {
           <p className="font-serif text-3xl md:text-4xl text-white mb-2">
             {showAssets ? formatCurrency(totalAssetsValue) : '******'}
           </p>
+          
+          {showAssets && (
+            <div className="flex flex-wrap justify-end gap-3 text-xs text-white/50 mb-4 font-mono">
+              <span className={portfolio.gold > 0 ? 'text-gold-400 font-medium' : ''}>Vàng: {portfolio.gold} Chỉ</span>
+              <span>|</span>
+              <span className={portfolio.silver > 0 ? 'text-silver-400 font-medium' : ''}>Bạc: {portfolio.silver} Chỉ</span>
+              <span>|</span>
+              <span className={portfolio.silverKg > 0 ? 'text-silver-300 font-medium' : ''}>Bạc thỏi: {portfolio.silverKg} Kg</span>
+            </div>
+          )}
+
           {totalInvested > 0 && showAssets && (
             <div className="flex flex-col items-end gap-2 mt-3">
               <p className="text-white/60 text-sm">
