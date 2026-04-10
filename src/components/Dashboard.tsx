@@ -69,10 +69,25 @@ export default function Dashboard() {
     const fetchPrices = async () => {
       try {
         const res = await fetch('/api/prices');
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
         const data = await res.json();
+        if (data.error) {
+          throw new Error(data.error);
+        }
         setPrices(data);
       } catch (error) {
-        console.error("Failed to fetch prices", error);
+        console.error("Failed to fetch prices:", error);
+        // Fallback to mock data if API fails to prevent app crash
+        if (!prices) {
+          setPrices({
+            silver: { buy: 850000, sell: 870000, unit: "VNĐ/Chỉ" },
+            silverKg: { buy: 76000000, sell: 78000000, unit: "VNĐ/Kg" },
+            gold: { buy: 8000000, sell: 8200000, unit: "VNĐ/Chỉ" },
+            timestamp: new Date().toISOString()
+          });
+        }
       } finally {
         setLoading(false);
       }
@@ -87,6 +102,26 @@ export default function Dashboard() {
     e.preventDefault();
     if (!prices) return;
     
+    // Check trading hours for SELL orders
+    if (tradeType === 'SELL') {
+      const now = new Date();
+      const day = now.getDay(); // 0 is Sunday, 1-5 are weekdays, 6 is Saturday
+      const hours = now.getHours();
+      const minutes = now.getMinutes();
+      
+      const isWeekday = day >= 1 && day <= 5;
+      const timeInMinutes = hours * 60 + minutes;
+      const startTime = 8 * 60 + 30; // 8:30 AM = 510
+      const endTime = 17 * 60 + 30; // 5:30 PM = 1050
+      
+      const isWithinHours = timeInMinutes >= startTime && timeInMinutes <= endTime;
+
+      if (!isWeekday || !isWithinHours) {
+        alert("Ngoài giờ bán vui lòng liên hệ cửa hàng");
+        return;
+      }
+    }
+
     const numAmount = parseFloat(amount);
     if (isNaN(numAmount) || numAmount <= 0) {
       alert("Vui lòng nhập số lượng hợp lệ.");
@@ -217,7 +252,12 @@ export default function Dashboard() {
               {showAssets ? <EyeOff size={14} /> : <Eye size={14} />}
             </button>
           </div>
-          <p className="font-serif text-3xl md:text-4xl text-white mb-2">
+          <p className={`font-mono font-bold tracking-tight text-4xl md:text-5xl mb-2 transition-all duration-500 ${
+            totalInvested === 0 ? 'text-white' :
+            totalPnl > 0 ? 'text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]' :
+            totalPnl < 0 ? 'text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.5)]' :
+            'text-white'
+          }`}>
             {showAssets ? formatCurrency(totalAssetsValue) : '******'}
           </p>
           
