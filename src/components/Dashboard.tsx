@@ -145,7 +145,9 @@ export default function Dashboard() {
       } else {
         const success = sellAsset(tradeAsset, numAmount, numPrice, new Date(tradeDate).toISOString());
         if (success) {
-          setSellSuccessMsg(`Xin chào, chúng tôi đã nhận được lệnh bán của bạn. Tiền sẽ được chuyển vào số tài khoản của ${user?.fullName || 'khách hàng'} sau khi được phê duyệt trong vòng 24h (thường thì sẽ sau ít phút).`);
+          const totalAmount = numAmount * numPrice;
+          const formattedTotal = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalAmount);
+          setSellSuccessMsg(`Xin chào, chúng tôi đã nhận được lệnh bán của bạn (với tổng số tiền là ${formattedTotal}). Tiền sẽ được chuyển vào số tài khoản của ${user?.fullName || 'khách hàng'} sau khi được phê duyệt trong vòng 24h (thường thì sẽ sau ít phút).`);
           setAmount('');
         }
       }
