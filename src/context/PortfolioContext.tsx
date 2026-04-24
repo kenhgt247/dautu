@@ -26,8 +26,8 @@ export interface Portfolio {
 interface PortfolioContextType {
   portfolio: Portfolio;
   transactions: Transaction[];
-  buyAsset: (asset: AssetType, amount: number, pricePerUnit: number, date?: string) => void;
-  sellAsset: (asset: AssetType, amount: number, pricePerUnit: number, date?: string) => void;
+  buyAsset: (asset: AssetType, amount: number, pricePerUnit: number, date?: string) => boolean;
+  sellAsset: (asset: AssetType, amount: number, pricePerUnit: number, date?: string) => boolean;
 }
 
 const PortfolioContext = createContext<PortfolioContextType | undefined>(undefined);
@@ -103,14 +103,14 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       };
     });
     setTransactions(prev => [newTransaction, ...prev]);
+    return true;
   };
 
   const sellAsset = (asset: AssetType, amount: number, pricePerUnit: number, date?: string) => {
-    const currentAssetAmount = portfolio[getAssetKey(asset)];
+    const currentAssetAmount = portfolio[getAssetKey(asset)] as number;
     if (currentAssetAmount < amount) {
       const assetName = asset === 'GOLD' ? 'Vàng' : asset === 'SILVER_KG' ? 'Bạc (Kg)' : 'Bạc';
-      alert(`Bạn không có đủ ${assetName} để bán.`);
-      return;
+      throw new Error(`Bạn không có đủ ${assetName} để bán.`);
     }
 
     const totalRevenue = amount * pricePerUnit;
@@ -138,6 +138,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       };
     });
     setTransactions(prev => [newTransaction, ...prev]);
+    return true;
   };
 
   return (

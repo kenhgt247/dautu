@@ -31,6 +31,8 @@ export default function Dashboard() {
   const [tradeType, setTradeType] = useState<'BUY' | 'SELL'>('BUY');
   const [amount, setAmount] = useState<string>('');
   const [customPrice, setCustomPrice] = useState<string>('');
+  const [sellSuccessMsg, setSellSuccessMsg] = useState<string | null>(null);
+  const [notificationMsg, setNotificationMsg] = useState<string | null>(null);
   
   const [showAssets, setShowAssets] = useState(true);
   const [showHistory, setShowHistory] = useState(true);
@@ -117,27 +119,38 @@ export default function Dashboard() {
       const isWithinHours = timeInMinutes >= startTime && timeInMinutes <= endTime;
 
       if (!isWeekday || !isWithinHours) {
-        alert("Ngoài giờ bán vui lòng liên hệ cửa hàng");
+        setNotificationMsg("Ngoài giờ bán vui lòng liên hệ cửa hàng");
         return;
       }
     }
 
     const numAmount = parseFloat(amount);
     if (isNaN(numAmount) || numAmount <= 0) {
-      alert("Vui lòng nhập số lượng hợp lệ.");
+      setNotificationMsg("Vui lòng nhập số lượng hợp lệ.");
       return;
     }
 
     const numPrice = parseFloat(customPrice);
     if (isNaN(numPrice) || numPrice <= 0) {
-      alert("Vui lòng nhập đơn giá hợp lệ.");
+      setNotificationMsg("Vui lòng nhập đơn giá hợp lệ.");
       return;
     }
 
-    if (tradeType === 'BUY') {
-      buyAsset(tradeAsset, numAmount, numPrice, new Date(tradeDate).toISOString());
-    } else {
-      sellAsset(tradeAsset, numAmount, numPrice, new Date(tradeDate).toISOString());
+    try {
+      if (tradeType === 'BUY') {
+        const success = buyAsset(tradeAsset, numAmount, numPrice, new Date(tradeDate).toISOString());
+        if (success) {
+          setAmount('');
+        }
+      } else {
+        const success = sellAsset(tradeAsset, numAmount, numPrice, new Date(tradeDate).toISOString());
+        if (success) {
+          setSellSuccessMsg(`Xin chào, chúng tôi đã nhận được lệnh bán của bạn. Tiền sẽ được chuyển vào số tài khoản của ${user?.fullName || 'khách hàng'} sau khi được phê duyệt trong vòng 24h (thường thì sẽ sau ít phút).`);
+          setAmount('');
+        }
+      }
+    } catch (err: any) {
+      setNotificationMsg(err.message);
     }
     
     setAmount('');
@@ -629,6 +642,35 @@ export default function Dashboard() {
         transaction={selectedInvoice} 
         onClose={() => setSelectedInvoice(null)} 
       />
+
+      {/* Notification Modal */}
+      {(notificationMsg || sellSuccessMsg) && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-ink border border-white/10 p-8 rounded-xl max-w-md w-full relative shadow-2xl">
+            <h3 className={`text-xl font-serif mb-4 ${sellSuccessMsg ? 'text-green-400' : 'text-gold-400'}`}>
+              {sellSuccessMsg ? 'Giao dịch thành công' : 'Thông báo'}
+            </h3>
+            <p className="text-white/80 leading-relaxed mb-8">
+              {sellSuccessMsg || notificationMsg}
+            </p>
+            <div className="flex justify-end">
+              <button
+                onClick={() => {
+                  setNotificationMsg(null);
+                  setSellSuccessMsg(null);
+                }}
+                className={`px-6 py-2 rounded uppercase tracking-wider text-sm font-bold transition-colors ${
+                  sellSuccessMsg 
+                    ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30' 
+                    : 'bg-gold-500/20 text-gold-400 hover:bg-gold-500/30'
+                }`}
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
